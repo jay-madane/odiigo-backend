@@ -3,10 +3,11 @@ const Service = require("../models/services");
 const Category = require("../../models/category");
 const ServicePricing = require("../../../service-prices/model/pricing");
 const Vehicle = require("../../../vehicles/models/vehicle");
+
 // Get all services
 // @route GET /api/services
 const getServices = asyncHandler(async (req, res) => {
-  const services = await Service.find();
+  const services = await Service.find().populate('category_id', 'category_name');
   res.status(200).json(services);
 });
 
@@ -14,19 +15,16 @@ const getServices = asyncHandler(async (req, res) => {
 // @route GET /api/services/:id
 const getServiceById = asyncHandler(async (req, res) => {
   const service = await Service.findById(req.params.id);
-
   if (!service) {
     return res.status(404).json({ message: "Service not found" });
   }
-
   res.status(200).json(service);
 });
 
 // Create new service
 // @route POST /api/services
 const createService = asyncHandler(async (req, res) => {
-  const { service_name, service_details, included_services, category_id } =
-    req.body;
+  const { service_name, service_details, included_services, category_id } = req.body;
 
   // Check if the category exists
   const category = await Category.findById(category_id);
@@ -74,11 +72,9 @@ const updateService = asyncHandler(async (req, res) => {
     });
   }
 
-  const updatedService = await Service.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true }
-  );
+  const updatedService = await Service.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+  });
 
   res.status(200).json(updatedService);
 });
@@ -100,6 +96,8 @@ const deleteService = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Service deleted successfully" });
 });
 
+// Get all services with vehicle-specific pricing
+// @route GET /api/services/vehicle/:vehicleId
 const getAllServicesWithVehiclePricing = async (req, res) => {
   try {
     const { vehicleId } = req.params;
@@ -143,4 +141,3 @@ module.exports = {
   deleteService,
   getAllServicesWithVehiclePricing,
 };
-
